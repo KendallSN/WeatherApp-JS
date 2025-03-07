@@ -1,46 +1,55 @@
-// WEATHER APP
-
-const weatherForm = document.querySelector(".weatherForm");
-const cityInput = document.querySelector(".cityInput");
-const card = document.querySelector(".card");
 const apiKey = "47cabf3816ae429c5472f4eb6b4cb009";
 
-weatherForm.addEventListener("submit", async event => {
+// Selección de elementos
+const citySearches = [
+    { input: document.getElementById('city1Input'), 
+      button: document.getElementById('city1SearchBtn'), 
+      card: document.getElementById('card1') },
+    { input: document.getElementById('city2Input'), 
+      button: document.getElementById('city2SearchBtn'), 
+      card: document.getElementById('card2') },
+    { input: document.getElementById('city3Input'), 
+      button: document.getElementById('city3SearchBtn'), 
+      card: document.getElementById('card3') }
+];
 
-    event.preventDefault();
+// Agregar event listeners para cada búsqueda de ciudad
+citySearches.forEach(citySearch => {
+    citySearch.button.addEventListener('click', async () => {
+        const city = citySearch.input.value.trim();
+        const card = citySearch.card;
 
-    const city = cityInput.value;
+        // Limpiar tarjeta anterior
+        card.textContent = "";
+        card.style.display = "none";
 
-    if(city){
-        try{
-            const weatherData = await getWeatherData(city);
-            displayWeatherInfo(weatherData);
+        if (city) {
+            try {
+                const weatherData = await getWeatherData(city);
+                displayWeatherInfo(weatherData, card);
+            } catch (error) {
+                console.error(error);
+                displayError(error, card);
+            }
+        } else {
+            displayError("Please enter a city", card);
         }
-        catch(error){
-            console.error(error);
-            displayError(error);
-        }
-    }
-    else{
-        displayError("Please enter a city");
-    }
+    });
 });
 
-async function getWeatherData(city){
-
+async function getWeatherData(city) {
     const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
 
     const response = await fetch(apiUrl);
 
-    if(!response.ok){
+    if (!response.ok) {
         throw new Error("Could not fetch weather data");
     }
 
     return await response.json();
 }
 
-function displayWeatherInfo(data){
-
+function displayWeatherInfo(data, card) {
     const {name: city, 
            main: {temp, humidity}, 
            weather: [{description, id}]} = data;
@@ -73,9 +82,8 @@ function displayWeatherInfo(data){
     card.appendChild(weatherEmoji);
 }
 
-function getWeatherEmoji(weatherId){
-
-    switch(true){
+function getWeatherEmoji(weatherId) {
+    switch(true) {
         case (weatherId >= 200 && weatherId < 300):
             return "⛈";
         case (weatherId >= 300 && weatherId < 400):
@@ -95,8 +103,7 @@ function getWeatherEmoji(weatherId){
     }
 }
 
-function displayError(message){
-
+function displayError(message, card) {
     const errorDisplay = document.createElement("p");
     errorDisplay.textContent = message;
     errorDisplay.classList.add("errorDisplay");
